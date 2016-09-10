@@ -1,3 +1,4 @@
+from django.shortcuts import redirect
 from django.shortcuts import render
 
 from .models import Item
@@ -5,13 +6,8 @@ from .models import Item
 
 def home_page(request):
     if request.method == 'POST':
-        item = Item()
-        item.text = request.POST.get('item_text', '')
-        item.save()
-        return render(request,
-                      'lists/home.html',
-                      {
-                          'new_item_text' : item.text,
-                      })
+        text = request.POST.get('item_text', '')
+        Item.objects.create(text=request.POST['item_text'])
+        return redirect('/lists/')
     else:
         return render(request, 'lists/home.html')
