@@ -10,4 +10,9 @@ def home_page(request):
         Item.objects.create(text=request.POST['item_text'])
         return redirect('/lists/')
     else:
-        return render(request, 'lists/home.html')
+        items = Item.objects.all()
+        return render(request,
+                      'lists/home.html',
+                      {
+                          'items' : items,
+                      })
