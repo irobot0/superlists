@@ -5,12 +5,7 @@ from .models import Item
 
 
 def home_page(request):
-    if request.method == 'POST':
-        text = request.POST.get('item_text', '')
-        Item.objects.create(text=request.POST['item_text'])
-        return redirect('/lists/the-only-list-in-the-world/')
-    else:
-        return render(request, 'lists/home.html',)
+    return render(request, 'lists/home.html',)
 
 
 def view_list(request):
@@ -20,3 +15,10 @@ def view_list(request):
                   {
                       'items': items,
                   })
+
+
+def new_list(request):
+    item = Item()
+    item.text = request.POST['item_text']
+    item.save()
+    return redirect('/lists/the-only-list-in-the-world/')
