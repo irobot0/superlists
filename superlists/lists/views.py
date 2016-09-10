@@ -8,7 +8,7 @@ def home_page(request):
     if request.method == 'POST':
         text = request.POST.get('item_text', '')
         Item.objects.create(text=request.POST['item_text'])
-        return redirect('/lists/')
+        return redirect('/lists/the-only-list-in-the-world')
     else:
         items = Item.objects.all()
         return render(request,
