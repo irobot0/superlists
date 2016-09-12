@@ -20,11 +20,11 @@ def view_list(request, list_id):
 
 def new_list(request):
     list_ = List.objects.create()
-    item = Item.objects.create(text=request.POST['item_text'], list=list_)
+    item = Item.objects.create(text=request.POST.get('item_text', ''), list=list_)
     return redirect('/lists/{0:d}/'.format(list_.id))
 
 
 def add_item(request, list_id):
     list_ = List.objects.get(id=list_id)
-    Item.objects.create(text=request.POST['item_text'], list=list_)
+    Item.objects.create(text=request.POST.get('item_text', ''), list=list_)
     return redirect('/lists/{0:d}/'.format(list_.id))
