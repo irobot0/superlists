@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+from fabric.api import cd
 from fabric.api import env
 from fabric.api import local
 from fabric.api import run
-from fabric.context_managers import cd
+from fabric.api import settings
+from fabric.api import sudo
 from fabric.contrib.files import append
 from fabric.contrib.files import exists
 from fabric.contrib.files import sed
@@ -10,12 +12,19 @@ from fabric.contrib.files import sed
 import random
 
 REPO_URL = 'https://github.com/xuyan0/superlists.git'
+SITE_NAME = 'superlists-staging.ashmemo.com'
 
 # Using the Project Layout recommended by Two Scoops of Django
 PROJECT_NAME = 'superlists'
 CONFIG_APP_NAME = 'superlists'
 PROJECT_DIR = '/' + PROJECT_NAME
 CONFIG_APP_DIR = '/' + CONFIG_APP_NAME
+
+# I still haven't discover any pratical solution to enable executing
+# sudo commands using SSH Key authentication (without manually entering
+# password for the sudo group user).
+#
+# env.key_filename = '~/.ssh/id_rsa'
 
 
 def deploy():
@@ -36,6 +45,10 @@ def deploy():
     _update_virtualenv(site_src)
     _update_static_files(site_src)
     _update_database(site_src)
+
+    _configure_nginx(site_src, SITE_NAME)
+    _configure_gunicorn_systemd(site_src, SITE_NAME, PROJECT_NAME, CONFIG_APP_NAME)
+    _restart_web_services()
 
 
 def _create_site_dir_struct(dir, subdirs):
@@ -93,3 +106,25 @@ def _update_static_files(src_dir):
 def _update_database(src_dir):
     with cd('{0}'.format(src_dir)):
         run('../venv/bin/python3 manage.py migrate --noinput')
+
+
+def _configure_nginx(src_dir, site_name):
+    with cd('{0}'.format(src_dir)):
+        # run('sed "s/SITENAME/%s/g" deploy_tools/nginx.template.conf | sudo tee /etc/nginx/sites-available/%s' % (site_name, site_name,))
+        with settings(line='$(sed "s/SITENAME/%s/g" deploy_tools/nginx.template.conf)' % (site_name,)):
+            sudo('echo $line >> /etc/nginx/sites-available/{0}'.format(site_name))
+    sudo('ln -sf /etc/nginx/sites-available/%s /etc/nginx/sites-enabled/%s' % (site_name, site_name,))
+
+
+def _configure_gunicorn_systemd(src_dir, site_name, project_name, config_app_name):
+    with cd('{0}'.format(src_dir)):
+        # run('sed "s/SITENAME/%s/g; s/PROJECT_NAME/%s/g; s/CONFIG_APP_NAME/%s/g" deploy_tools/gunicorn-systemd.template.conf | sudo tee /etc/systemd/system/gunicorn.service' % (site_name, project_name, config_app_name,))
+        with settings(line='$(sed "s/SITENAME/%s/g; s/PROJECT_NAME/%s/g; s/CONFIG_APP_NAME/%s/g" deploy_tools/gunicorn-systemd.template.conf)' % (site_name, project_name, config_app_name,)):
+            sudo('echo $line >> /etc/systemd/system/gunicorn.service')
+
+
+def _restart_web_services():
+    sudo('systemctl daemon-reload')
+    sudo('systemctl start gunicorn')
+    sudo('systemctl enable gunicorn')
+    sudo('systemctl restart nginx')
