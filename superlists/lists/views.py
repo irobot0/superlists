@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 from django.shortcuts import render
 
@@ -11,17 +12,21 @@ def home_page(request):
 
 def view_list(request, list_id):
     list_ = List.objects.get(id=list_id)
-    return render(request,
-                  'lists/list.html',
-                  {
-                      'list': list_,
-                  })
+    return render(request, 'lists/list.html', {'list': list_})
 
 
 def new_list(request):
     list_ = List.objects.create()
     item = Item.objects.create(text=request.POST.get('item_text', ''), list=list_)
-    return redirect('/lists/{0:d}/'.format(list_.id))
+    try:
+        item.full_clean()
+        item.save()
+    except ValidationError:
+        list_.delete()
+        error = "You can't have an empty list item"
+        return render(request, 'lists/home.html', {'error': error})
+    else:
+        return redirect('/lists/{0:d}/'.format(list_.id))
 
 
 def add_item(request, list_id):
