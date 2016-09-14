@@ -31,6 +31,6 @@ Assume we have a user account at /home/username
 |--- sites
      |--- SITENAME
            |--- database
-           |--- source
+           |--- PROJECT_DIR
            |--- static
-           |--- virtualenv
+           |--- venv
