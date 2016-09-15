@@ -2,12 +2,13 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 from django.shortcuts import render
 
+from .forms import ItemForm
 from .models import Item
 from .models import List
 
 
 def home_page(request):
-    return render(request, 'lists/home.html',)
+    return render(request, 'lists/home.html', {'form': ItemForm()})
 
 
 def view_list(request, list_id):
