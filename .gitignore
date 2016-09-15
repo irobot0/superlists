@@ -7,5 +7,5 @@ __pycache__
 .idea/tasks.xml
 .idea/*.iws
 database/
-static/
+/static/
 virtualenv/
