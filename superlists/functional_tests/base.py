@@ -49,3 +49,6 @@ class FunctionalTest(StaticLiveServerTestCase):
                       [row.text for row in rows],
                       "New to-do item did not appear in table -- its text was:\n {}".format(
                           table.text))
+
+    def get_item_input_box(self):
+        return self.browser.find_element_by_id('id_text')
