@@ -53,7 +53,7 @@ class ListViewTest(TestCase):
 
         self.client.post(
             '/lists/{0:d}/'.format(correct_list.id),
-            data={'item_text': 'A new list item for an existing list'}
+            data={'text': 'A new list item for an existing list'}
         )
 
         self.assertEqual(Item.objects.count(), 1)
@@ -66,20 +66,33 @@ class ListViewTest(TestCase):
 
         response = self.client.post(
             '/lists/{0:d}/'.format(correct_list.id),
-            data={'item_text': 'A new list item for an existing list'}
+            data={'text': 'A new list item for an existing list'}
         )
         self.assertRedirects(response, '/lists/{0:d}/'.format(correct_list.id))
 
-    def test_validation_errors_end_up_on_lists_page(self):
+    def post_invalid_input(self):
         list_ = List.objects.create()
-        response = self.client.post(
+        return self.client.post(
             '/lists/{0:d}/'.format(list_.id),
-            data={'item_text': ''}
+            data={'text': ''}
         )
+
+    def test_for_invalid_input_nothing_saved_to_db(self):
+        self.post_invalid_input()
+        self.assertEqual(Item.objects.count(), 0)
+
+    def test_for_invalid_input_renders_list_template(self):
+        response = self.post_invalid_input()
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'lists/list.html')
-        expected_error = escape("You can't have an empty list item")
-        self.assertContains(response, expected_error)
+
+    def test_for_invalid_input_passes_form_to_template(self):
+        response = self.post_invalid_input()
+        self.assertIsInstance(response.context['form'], ItemForm)
+
+    def test_for_invalid_input_shows_error_on_page(self):
+        response = self.post_invalid_input()
+        self.assertContains(response, escape(EMPTY_LIST_ERROR))
 
 
 class NewListTest(TestCase):
