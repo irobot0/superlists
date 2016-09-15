@@ -58,6 +58,6 @@ class ItemValidationTest(FunctionalTest):
         # She starts typing in the input box to clear the error
         self.get_item_input_box().send_keys('a')
 
-        # She is pleased to see thtat the error message disappears
+        # She is pleased to see that the error message disappears
         error = self.get_error_element()
         self.assertFalse(error.is_displayed())
